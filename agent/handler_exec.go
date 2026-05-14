@@ -31,7 +31,7 @@ type commandSpec struct {
 }
 
 var (
-	domainRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-\.]{0,251}[a-zA-Z0-9])?$`)
+	domainRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?)*$`)
 	emailRegex  = regexp.MustCompile(`^[^@\s]+@[^@\s]+\.[^@\s]+$`)
 	branchRegex = regexp.MustCompile(`^[a-zA-Z0-9/_.\-]{1,100}$`)
 	urlRegex    = regexp.MustCompile(`^https?://`)
@@ -52,7 +52,21 @@ var (
 				"tier":        {required: true, flag: "--tier", validator: func(v string) bool { return allowedTiers[v] }},
 				"tls":         {required: true, flag: "--tls", validator: func(v string) bool { return allowedTLSModes[v] }},
 				"email":       {required: false, flag: "--email", validator: func(v string) bool { return v == "" || emailRegex.MatchString(v) }},
-				"git_repo":    {required: false, flag: "--git-repo", validator: func(v string) bool { return v == "" || (urlRegex.MatchString(v) && len(v) < 500) }},
+				"git_repo": {required: false, flag: "--git-repo", validator: func(v string) bool {
+					if v == "" {
+						return true
+					}
+					if !urlRegex.MatchString(v) || len(v) >= 500 {
+						return false
+					}
+					// Reject any shell metacharacters in the URL
+					for _, ch := range v {
+						if ch == '$' || ch == '`' || ch == ';' || ch == '|' || ch == '&' || ch == '<' || ch == '>' || ch == '\'' || ch == '"' || ch == '\\' || ch == ' ' || ch == '\t' || ch == '\n' {
+							return false
+						}
+					}
+					return true
+				}},
 				"git_branch":  {required: false, flag: "--git-branch", validator: func(v string) bool { return v == "" || branchRegex.MatchString(v) }},
 			},
 		},
@@ -141,7 +155,11 @@ func (h *ExecHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			flusher.Flush()
 		}
 	}
-	json.NewEncoder(w).Encode(ExecLine{Type: "done", Code: 0})
+	code := 0
+	if scanner.Err() != nil {
+		code = 1
+	}
+	json.NewEncoder(w).Encode(ExecLine{Type: "done", Code: code})
 	if canFlush {
 		flusher.Flush()
 	}

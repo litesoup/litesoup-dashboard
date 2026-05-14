@@ -72,6 +72,9 @@ func (d *Discoverer) parseSite(vhostConf string) (Site, error) {
 			hasSSL = true
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return Site{}, fmt.Errorf("scanning %s: %w", vhostConf, err)
+	}
 	if domain == "" {
 		return Site{}, fmt.Errorf("no ServerName in %s", vhostConf)
 	}
@@ -130,6 +133,9 @@ func (d *Discoverer) findPool(user string) (phpVersion, tier string) {
 			}
 			return
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return phpVersion, "unknown"
 	}
 	return phpVersion, "unknown"
 }

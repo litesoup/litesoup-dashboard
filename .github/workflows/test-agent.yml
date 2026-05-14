@@ -7,6 +7,9 @@ on:
   pull_request:
     paths: ["agent/**"]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-24.04

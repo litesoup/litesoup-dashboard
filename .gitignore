@@ -1,0 +1,4 @@
+agent/litesoup-agent
+agent/litesoup-agent-*
+agent/cmd/litesoup-agent/litesoup-agent
+dist/

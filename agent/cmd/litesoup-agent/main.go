@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	agent "github.com/litesoup/litesoup-dashboard/agent"
+	"github.com/litesoup/litesoup-dashboard/agent"
 )
 
 const version = "0.1.0"

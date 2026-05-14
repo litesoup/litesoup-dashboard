@@ -31,6 +31,9 @@ func TestMetricsHandler(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected 200, got %d", w.Code)
 	}
+	if ct := w.Header().Get("Content-Type"); ct != "application/json" {
+		t.Errorf("expected Content-Type=application/json, got %q", ct)
+	}
 	var got agent.Metrics
 	if err := json.NewDecoder(w.Body).Decode(&got); err != nil {
 		t.Fatal(err)

@@ -1,0 +1,24 @@
+version: 2
+project_name: litesoup-agent
+
+builds:
+  - id: agent
+    dir: agent
+    main: ./cmd/litesoup-agent/
+    binary: litesoup-agent
+    goos: [linux]
+    goarch: [amd64, arm64]
+    env: [CGO_ENABLED=0]
+    ldflags:
+      - -s -w
+
+archives:
+  - id: agent
+    builds: [agent]
+    name_template: "litesoup-agent_{{ .Os }}_{{ .Arch }}"
+    format: binary
+
+release:
+  github:
+    owner: litesoup
+    name: litesoup-dashboard

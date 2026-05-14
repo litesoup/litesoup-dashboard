@@ -1,0 +1,13 @@
+[Unit]
+Description=litesoup agent — metrics and command execution API
+Documentation=https://github.com/litesoup/litesoup-dashboard
+After=network.target
+
+[Service]
+ExecStart=/usr/lib/litesoup/agent/litesoup-agent --port=7777
+User=root
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

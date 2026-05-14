@@ -12,9 +12,11 @@ func NewHealthHandler(version string) *HealthHandler {
 }
 
 func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	body, err := json.Marshal(map[string]string{"status": "ok", "version": h.version})
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"status":  "ok",
-		"version": h.version,
-	})
+	w.Write(body)
 }

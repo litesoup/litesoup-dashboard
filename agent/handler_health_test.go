@@ -31,3 +31,17 @@ func TestHealthHandler(t *testing.T) {
 		t.Errorf("expected version=0.1.0, got %q", resp["version"])
 	}
 }
+
+func TestHealthHandler_AllMethodsReturnOK(t *testing.T) {
+	// Method filtering is done by the router (server.go mux.Handle("GET /health", ...)).
+	// The handler itself does not check the method.
+	h := agent.NewHealthHandler("0.1.0")
+	for _, method := range []string{http.MethodGet, http.MethodPost, http.MethodDelete} {
+		req := httptest.NewRequest(method, "/health", nil)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Errorf("method %s: expected 200, got %d", method, w.Code)
+		}
+	}
+}

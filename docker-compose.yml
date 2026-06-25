@@ -1,0 +1,22 @@
+services:
+  dashboard:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - db-data:/var/lib/litesoup-dashboard
+    environment:
+      JWT_SECRET: dev-secret-change-in-prod
+      DB_PATH: /var/lib/litesoup-dashboard/db.sqlite
+      PORT: "3000"
+    entrypoint: >
+      sh -c "
+        if [ ! -f /var/lib/litesoup-dashboard/db.sqlite ]; then
+          echo 'Seeding database...' &&
+          bun run src/seed.ts;
+        fi &&
+        exec bun run src/index.ts
+      "
+
+volumes:
+  db-data:

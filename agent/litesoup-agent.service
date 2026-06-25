@@ -1,16 +1,28 @@
 [Unit]
-Description=litesoup agent — metrics and command execution API
-Documentation=https://github.com/litesoup/litesoup-dashboard
+Description=litesoup agent — VPS metrics and management API
+Documentation=https://github.com/codetot-web/litesoup
 After=network.target
 
 [Service]
-ExecStart=/usr/lib/litesoup/agent/litesoup-agent --port=7777
-# root required: litesoup CLI commands manage Apache/PHP-FPM/MariaDB services
+Type=simple
 User=root
+WorkingDirectory=/opt/litesoup-agent
+ExecStart=/root/.bun/bin/bun run /opt/litesoup-agent/src/index.ts
 Restart=on-failure
 RestartSec=5s
+
+# Runtime directories and cache
+RuntimeDirectory=litesoup-agent
+StateDirectory=litesoup-agent
+
+# Environment
+Environment=AGENT_PORT=7777
+Environment=AGENT_CACHE_PATH=/var/lib/litesoup-agent/wp-cache.json
+
+# Security hardening (compatible with root-required proc access)
 NoNewPrivileges=yes
-PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/litesoup-agent
 
 [Install]
 WantedBy=multi-user.target

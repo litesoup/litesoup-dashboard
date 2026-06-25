@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  test-go-agent:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -20,10 +20,10 @@ jobs:
           go-version: "1.22"
           cache-dependency-path: agent/go.sum
 
-      - name: Run tests
+      - name: Run Go tests
         working-directory: agent
         run: go test ./... -v -count=1 -race
 
-      - name: Build binary (verify it compiles)
+      - name: Build Go binary (verify it compiles)
         working-directory: agent
         run: GOOS=linux GOARCH=amd64 go build -o /tmp/litesoup-agent-linux-amd64 ./cmd/litesoup-agent/

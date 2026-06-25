@@ -1,4 +1,22 @@
+# Go agent
 agent/litesoup-agent
 agent/litesoup-agent-*
 agent/cmd/litesoup-agent/litesoup-agent
+agent/node_modules/
+agent/bun.lock
+
+# Bun / Node
+node_modules/
+*.tsbuildinfo
+
+# Vite build
+web/dist/
+
+# Dashboard built SPA (copied from web/dist at build time)
+dashboard/public/assets/
+
+# Release
 dist/
+
+# macOS
+.DS_Store
